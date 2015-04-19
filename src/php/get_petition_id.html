@@ -1,0 +1,45 @@
+{% load php %}
+<!doctype html> <html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Get Petition ID Test</title>
+    {% load staticfiles %}
+    <!-- link rel="stylesheet" type="text/css" href="{% static 'temp/s$
+    <style>
+       body {background-color:lightgray}
+       h1 {color:blue}
+       p  {color:green}
+    </style>
+  </head>
+
+  <script>
+  </script>
+
+  <!-- get the petition ID, is this constant? -->
+  <body>
+    {% startphp %}
+      //Function Defs
+      //=====================
+      //returns Petition ID in string
+      function getPetitionId(&$api_key, &$petition_url) {
+        $REQUEST_URL = 'https://api.change.org/v1/petitions/get_id';
+        $parameters = array( 'api_key' => $api_key, 'petition_url' => $
+        $query_string = http_build_query($parameters);
+        $final_request_url = "$REQUEST_URL?$query_string";
+        $response = file_get_contents($final_request_url);
+        $json_response = json_decode($response, true);
+        return $json_response['petition_id'];
+        }
+
+	  //Runtime Code here
+      //=====================
+      //these will need to move to the server (https://github.com/vbuck/change-js-api/blob/master/documentation/client-security.md)
+      $API_KEY = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx';
+      $PETITION_URL = 'http://xyz.com''; 
+
+      //test function
+      echo 'Petition Id = ' . getPetitionId($API_KEY, $PETITION_URL);
+
+      {% endphp %}
+  </body>
+</html>

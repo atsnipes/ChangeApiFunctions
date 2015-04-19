@@ -1,0 +1,87 @@
+{% load php %}<!doctype html> <html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Petition Test</title> 
+    {% load staticfiles %}
+    <script type="text/javascript" src="{% static 'temp/sha256.js' %}"></script>
+    <script type="text/javascript" src="{% static 'temp/changeorgapi.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'temp/changeorgapi.js' %}"></script>
+    <!-- link rel="stylesheet" type="text/css" href="{% static 'temp/style.css' %}" / -->     
+    <style>
+        body {background-color:lightgray}
+        h1 {color:blue}
+        p  {color:green} 
+    </style>
+  </head>
+  
+  <script>
+//var client=new ChangeOrgApiClient({
+//    api_key : 'cfb908f401528b090a1751fd37fdde89307aacc118c664bc93b7ea10ccaf1b8f',
+//    secret  : '1dafbbd047c04d4c05301c7851b37d6fcb6c5a977b90b50decb1cd56b3299fcb'
+//});
+
+//var petition=new ChangeOrgApiPetition(client);
+
+//petition.getPetitionId('http://www.change.org/petitions/save-the-clock-tower',function(response) {
+//    console.log(JSON.stringify(response.getData()));
+//});
+  </script>
+
+  <!-- get the petition ID, is this constant? -->
+  <body>
+    {% startphp %}
+      //Function Defs
+      //=====================
+      function getAuthKey(&$parameters, &$petition_id, &$secret_token) {
+        //get an Authentication Key
+        $host = 'https://api.change.org';
+        $endpoint = "/v1/petitions/$petition_id/auth_keys";
+        $request_url = $host . $endpoint;
+
+        //fill in additional params
+        $parameters['timestamp'] = gmdate("Y-m-d\TH:i:s\Z"); // ISO-8601-formtted timestamp at UTC
+		$parameters['endpoint'] = $endpoint;
+
+        $query_string_with_secret_and_auth_key =  http_build_query($parameters) . $secret_token;
+        $parameters['rsig'] = hash('sha256', $query_string_with_secret_and_auth_key);
+
+        $query = http_build_query($parameters);
+
+        $curl_session = curl_init();
+        curl_setopt_array($curl_session, array( 
+          CURLOPT_POST => 1, 
+          CURLOPT_URL => $request_url, 
+          CURLOPT_POSTFIELDS => $query, 
+          CURLOPT_RETURNTRANSFER => true
+        ));
+
+        $result = curl_exec($curl_session);
+        $result = curl_exec($curl_session);
+        $json_response = json_decode($result, true);
+
+        return $json_response;
+      }
+      
+      //Runtime Code here
+      //=====================
+      //these will need to move to the server (https://github.com/vbuck/change-js-api/blob/master/documentation/client-security.md)
+      $API_KEY = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx';
+      $SECRET_TOKEN = yyyyyyyyyyyyyyyyyyyyyyy';
+      $PETITION_URL = 'http://xyz.com''; 
+      $PETITION_ID = 123456;
+      
+      //fill in additional params for auth_key retrieval
+      $params = array();
+      $params['api_key'] = $API_KEY;
+      $params['source_description'] = 'Test Descript';// mandatory
+      $params['source'] = $PETITION_URL;
+      $params['requester_email'] = 'atsnipes@gmail.com';
+
+      //get JSON response back for auth_key
+      $response =  getAuthKey($params, $PETITION_ID, $SECRET_TOKEN);
+      echo "The result = " . $response['result'];
+      echo "The Auth Key = " . $response['auth_key'];
+  
+  </body>
+</html>
+

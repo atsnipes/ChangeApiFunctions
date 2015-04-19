@@ -1,0 +1,85 @@
+{% load php %}
+<!doctype html> <html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Petition Test</title>
+    {% load staticfiles %}
+    <!-- link rel="stylesheet" type="text/css" href="{% static 'temp/style.css' %}" / -->
+    <style>
+       body {background-color:lightgray}
+       h1 {color:blue}
+       p  {color:green}
+    </style>
+  </head>
+
+  <script>
+  </script>
+
+  <body>
+    {% startphp %}
+      
+      //Function Defs
+      //=====================
+      function signPetition(&$parameters, &$petition_url, &$petition_id, &$secret_token, &$auth_key) {
+        //setup url for POST
+        $base_url = "https://api.change.org";
+        $endpoint = "/v1/petitions/$petition_id/signatures";
+        $url = $base_url . $endpoint;
+
+        //fill in additional params
+        $parameters['source'] = $petition_url;
+        $parameters['endpoint'] = $endpoint;
+        $parameters['timestamp'] = gmdate("Y-m-d\TH:i:s\Z"); // ISO-8601-formtted timestamp at UTC
+
+        // Build request signature.
+        $query_string_with_secret_and_auth_key = http_build_query($parameters) . $secret_token . $auth_key;
+
+        // Add the request signature to the parameters array.
+        $parameters['rsig'] = hash('sha256', $query_string_with_secret_and_auth_key);
+
+        // Create the request body
+        $data = http_build_query($parameters);
+
+        // POST the parameters to the petition's signatures endpoint.
+        $curl_session = curl_init();
+        curl_setopt_array($curl_session, array(
+          CURLOPT_POST => 1,
+          CURLOPT_URL => $url,
+          CURLOPT_POSTFIELDS => $data
+         ));
+
+        return curl_exec($curl_session);
+      }
+      
+      //Runtime Code here
+      //=====================
+      //these will need to move to the server (https://github.com/vbuck/change-js-api/blob/master/documentation/client-security.md)
+      $API_KEY = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx';
+      $SECRET_TOKEN = 'yyyyyyyyyyyyyyyyyyyyyyy';
+      $AUTH_KEY = 'zzzzzzzzzzzzzzzzzzzzzzzzzzz';
+      $REQUEST_URL = 'http://xyz.com'; 
+      $PETITION_URL = 'http://xyz.com''; 
+      $PETITION_ID = 123456;
+ 
+      //generate params array with needed args
+      $params = array();
+      //the following are derived from user input or db 
+      $params['email'] = 'atssintsssd@gmail.com'; 
+      $params['first_name'] = 'Aaronsdf';
+      $params['last_name'] = 'Pdseat';
+      $params['address'] = '5520 Helen';
+      $params['city'] = 'Austin';
+      $params['state_province'] = 'TX';
+      $params['postal_code'] = '78751';
+      $params['country_code'] = 'US';
+      $params['api_key'] = $API_KEY; 
+      $params['secret_token'] = $SECRET_TOKEN;
+      $params['auth_key'] = $AUTH_KEY;
+      
+      //call custom function to sign the petition
+      echo signPetition($params2, $PETITION_URL, $PETITION_ID, $SECRET_TOKEN, $AUTH_KEY);
+      {% endphp %}
+    
+  </body>
+  </html>
+
